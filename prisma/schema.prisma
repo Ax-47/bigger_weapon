@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  name        String   @db.VarChar(30)
+  password    String   @db.VarChar(70)
+  is_admin    Boolean  @default(false)
+  money       Int      @default(0)
+  prefile     String   @db.VarChar(50) @default("")
+  comments    Comment[] @relation("authorId")
+  statements  Statement[] @relation("authorId")
+  address     Address?
+  orders      Order[] @relation("authorId")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(30)
+  description String   @db.VarChar(512)
+  stock       Int      @default(0)
+  price       Int      @default(0)
+  prefile     String   @db.VarChar(50) @default("")
+  images      ProductImage[]
+  comments    Comment[] @relation("productId")
+  statements  Statement[] @relation("productId")
+  orders      Order[] @relation("productId")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model ProductImage{
+  id          Int      @id @default(autoincrement())
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   Int
+  image       String   @db.VarChar(50) @default("")
+}
+model Comment {
+  id          Int      @id @default(autoincrement())
+  product     Product  @relation("productId",fields: [productId], references: [id])
+  productId   Int
+  author      User     @relation("authorId",fields: [authorId], references: [id])
+  authorId    Int
+  review      Int
+  comment     String   @db.VarChar(256) 
+  images      CommentImage[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model CommentImage{
+  id          Int      @id @default(autoincrement())
+  Comment     Comment  @relation(fields: [commentId], references: [id])
+  commentId   Int
+  image       String   @db.VarChar(50) @default("")
+}
+model Statement{
+  id          Int      @id @default(autoincrement())
+  product     Product  @relation("productId",fields: [productId], references: [id])
+  productId   Int
+  author      User     @relation("authorId",fields: [authorId], references: [id])
+  authorId    Int
+  stock       Int     
+  price       Int      
+}
+model Address{
+  id          Int      @id @default(autoincrement())
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    Int      @unique
+  stock       Int     
+  price       Int     
+}
+model Order{
+  id          Int      @id @default(autoincrement())
+  product     Product  @relation("productId",fields: [productId], references: [id])
+  productId   Int
+  author      User     @relation("authorId",fields: [authorId], references: [id])
+  authorId    Int
+  stock       Int     
+  price       Int  
+}
